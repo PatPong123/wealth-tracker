@@ -1,0 +1,33 @@
+# === Node ===
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+.env
+.env.*
+!.env.example
+
+# === Build outputs ===
+dist/
+build/
+.next/
+out/
+
+# === Prisma ===
+prisma/*.db
+prisma/*.db-journal
+node_modules/.prisma
+prisma/migrations/**/migration_lock.toml
+
+# === Docker ===
+docker-data/
+postgres_data/
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === IDE ===
+.vscode/
+.idea/
+*.swp
