@@ -9,7 +9,7 @@ COPY prisma ./prisma/
 RUN npm ci
 
 # Prisma works here
-RUN npx prisma generate
+
 
 COPY . .
 
