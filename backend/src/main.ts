@@ -8,11 +8,20 @@ async function bootstrap() {
 
   // Enable CORS for frontend
 app.enableCors({
-  origin: [
-    'http://localhost:3000',
-    'https://wealth-tracker-79b8fex26-patpong123s-projects.vercel.app',
-    'https://wealth-tracker-ango.onrender.com' // ถ้ามี domain หลัก
-  ],
+  origin: (origin, callback) => {
+    // allow requests with no origin (like mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+
+    if (
+      origin.startsWith('http://localhost') ||
+      origin.endsWith('.vercel.app') ||
+      origin === 'https://wealth-tracker-ango.onrender.com'
+    ) {
+      return callback(null, true);
+    }
+
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
 });
 
