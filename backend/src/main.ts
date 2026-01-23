@@ -7,10 +7,14 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Enable CORS for frontend
-  app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-    credentials: true,
-  });
+app.enableCors({
+  origin: [
+    'http://localhost:3000',
+    'https://wealth-tracker-79b8fex26-patpong123s-projects.vercel.app',
+    'https://wealth-tracker-ango.onrender.com' // ถ้ามี domain หลัก
+  ],
+  credentials: true,
+});
 
   // Global validation pipe
   app.useGlobalPipes(
