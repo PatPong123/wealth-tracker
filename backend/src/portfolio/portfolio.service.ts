@@ -7,7 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AssetsService } from '../assets/assets.service';
 import { CreatePortfolioItemDto } from './dto/create-portfolio-item.dto';
 import { UpdatePortfolioItemDto } from './dto/update-portfolio-item.dto';
-import { PortfolioSummary, PortfolioItemWithValue } from './interfaces/portfolio.interface';
+import { PortfolioSummary, PortfolioItemWithValue, PortfolioItem } from './interfaces/portfolio.interface';
 
 @Injectable()
 export class PortfolioService {
@@ -40,7 +40,7 @@ export class PortfolioService {
 
     // Fetch current prices for all items
     const itemsWithValue = await Promise.all(
-      items.map(async (item) => {
+      items.map(async (item: PortfolioItem) => {
         const currentPrice = await this.assetsService.getCurrentPrice(item.symbol);
         const currentValue = currentPrice * item.quantity;
         const totalCost = item.purchasePrice * item.quantity;

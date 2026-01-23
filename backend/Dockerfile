@@ -1,35 +1,31 @@
-# Build stage
+# ===== Builder =====
 FROM node:20-bullseye AS builder
-
 WORKDIR /app
+
+# Dummy DB just for prisma types
+ENV DATABASE_URL="postgresql://user:pass@localhost:5432/db"
 
 COPY package*.json ./
 COPY prisma ./prisma/
 
-RUN npm ci
+RUN npm install
 
-# Prisma works here
-
+# Generate Prisma Client (types only, no real DB needed)
+RUN npx prisma generate
 
 COPY . .
-
 RUN npm run build
 
 
-# Production stage
-FROM node:20-bullseye AS production
-
+# ===== Production =====
+FROM node:20-bullseye
 WORKDIR /app
 
 COPY package*.json ./
-COPY prisma ./prisma/
-
-RUN npm ci --only=production
-
-
+RUN npm ci --omit=dev
 
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
 
-EXPOSE 3001
-
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/main.js"]
+# Prisma will regenerate with REAL Supabase URL
+CMD ["sh", "-c", "npx prisma generate && node dist/main.js"]
