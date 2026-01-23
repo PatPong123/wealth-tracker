@@ -26,7 +26,7 @@ COPY prisma ./prisma/
 
 RUN npm ci --only=production
 
-RUN npx prisma generate
+
 
 COPY --from=builder /app/dist ./dist
 
