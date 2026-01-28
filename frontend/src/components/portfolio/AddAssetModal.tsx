@@ -31,37 +31,39 @@ export default function AddAssetModal({ isOpen, onClose, onSubmit }: AddAssetMod
   const [error, setError] = useState<string | null>(null);
   const [useCurrentPrice, setUseCurrentPrice] = useState(true);
 
- const {
-  register,
-  handleSubmit,
-  setValue,
-  reset,
-  watch,
-  formState: { errors, isSubmitting },
-} = useForm<AddAssetFormData>({
-  resolver: zodResolver(addAssetSchema),
-  defaultValues: {
-    symbol: '',
-    purchasePrice: undefined,
-    quantity: undefined,
-  },
-});
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    reset,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<AddAssetFormData>({
+    resolver: zodResolver(addAssetSchema),
+    defaultValues: {
+      symbol: '',
+      purchasePrice: undefined,
+      quantity: undefined,
+    },
+  });
 
   const purchasePrice = watch('purchasePrice');
+  const quantity = watch('quantity');
+  const totalValue = (purchasePrice || 0) * (quantity || 0);
 
   // Search assets
   const searchAssets = useCallback(async (query: string) => {
-  setIsSearching(true);
-  try {
-  
-    const results = await assetsService.search(query || '');
-    setSearchResults(results.slice(0, 10));
-  } catch (err) {
-    console.error('Search failed:', err);
-  } finally {
-    setIsSearching(false);
-  }
-}, []);
+    setIsSearching(true);
+    try {
+
+      const results = await assetsService.search(query || '');
+      setSearchResults(results.slice(0, 10));
+    } catch (err) {
+      console.error('Search failed:', err);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
 
   // Debounced search
   useEffect(() => {
@@ -73,25 +75,25 @@ export default function AddAssetModal({ isOpen, onClose, onSubmit }: AddAssetMod
   }, [searchQuery, searchAssets]);
 
   // Select asset
-const handleSelectAsset = (asset: Asset) => {
-  setSelectedAsset(asset);
-  setSearchQuery(asset.symbol);
+  const handleSelectAsset = (asset: Asset) => {
+    setSelectedAsset(asset);
+    setSearchQuery(asset.symbol);
 
-  setValue('symbol', asset.symbol, {
-    shouldValidate: true,
-    shouldDirty: true,
-    shouldTouch: true,
-  });
-
-  if (useCurrentPrice) {
-    setValue('purchasePrice', asset.price, {
+    setValue('symbol', asset.symbol, {
       shouldValidate: true,
       shouldDirty: true,
+      shouldTouch: true,
     });
-  }
 
-  setShowDropdown(false);
-};
+    if (useCurrentPrice) {
+      setValue('purchasePrice', asset.price, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    }
+
+    setShowDropdown(false);
+  };
 
   // Update price when toggle changes
   useEffect(() => {
@@ -148,7 +150,7 @@ const handleSelectAsset = (asset: Asset) => {
           {/* Asset Search */}
           <div className="relative">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Symbol 
+              Symbol
             </label>
             <p className="text-xs text-gray-500 mb-2">E.G. AAPL, BTC</p>
             <div className="relative">
@@ -160,10 +162,10 @@ const handleSelectAsset = (asset: Asset) => {
                   setSearchQuery(e.target.value);
                   setShowDropdown(true);
                 }}
-                 onFocus={() => {
-    setShowDropdown(true);
-    searchAssets('');   // 🔥 เรียกทันทีแบบไม่พิมพ์
-  }}
+                onFocus={() => {
+                  setShowDropdown(true);
+                  searchAssets('');
+                }}
                 placeholder="Try AAPL, TSLA, BTC, ETH, MSFT"
                 className="input pl-10"
               />
@@ -171,7 +173,7 @@ const handleSelectAsset = (asset: Asset) => {
                 <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 animate-spin" />
               )}
             </div>
-            <input type="hidden"  defaultValue=""{...register('symbol')} />
+            <input type="hidden" defaultValue=""{...register('symbol')} />
             {errors.symbol && (
               <p className="mt-1 text-sm text-red-600">{errors.symbol.message}</p>
             )}
@@ -261,6 +263,16 @@ const handleSelectAsset = (asset: Asset) => {
               Current market price fetched automatically
             </span>
           </label>
+          {quantity > 0 && purchasePrice > 0 && (
+            <div className="p-3 bg-gray-50 border border-dashed border-gray-300 rounded-lg">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Estimated Total Value</span>
+                <span className="text-lg font-bold text-primary-600">
+                  ${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex gap-3 pt-4">

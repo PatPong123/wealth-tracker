@@ -30,12 +30,17 @@ api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
-      // Clear token and redirect to login
-      Cookies.remove('token');
-      if (typeof window !== 'undefined') {
+      const isLoginPage =
+        typeof window !== 'undefined' &&
+        window.location.pathname.startsWith('/auth');
+
+      // Redirect เฉพาะกรณี token หมดอายุ ไม่ใช่ตอน login
+      if (!isLoginPage) {
+        Cookies.remove('token');
         window.location.href = '/auth/login';
       }
     }
+
     return Promise.reject(error);
   }
 );
