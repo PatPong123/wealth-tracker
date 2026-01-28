@@ -1,7 +1,5 @@
 # WOXA Wealth Tracker MVP
 
-A full-stack Portfolio Tracker web application that allows users to record their own assets, view profit/loss, and see investment allocation percentages with an SEO-optimized Landing Page.
-
 ## Tech Stack
 
 | Layer | Technology |
@@ -130,6 +128,7 @@ DATABASE_URL="postgresql://username:password@localhost:5432/woxa_wealth_tracker?
 JWT_SECRET="your-super-secret-jwt-key"
 JWT_EXPIRES_IN="7d"
 PORT=3001
+STOCKS_API_URL="https://woxa-stocks-test-data.yuttanar.workers.dev"
 ```
 
 5. Generate Prisma client and run migrations:
@@ -275,8 +274,6 @@ The application uses the following test API for stock data:
 - **Get All Stocks**: `GET /`
 - **Get by Symbol**: `GET /symbol/:symbol`
 - **Get by Type**: `GET /type/:type`
-
-> **Note**: This API is for testing purposes only. Prices shown are not real market prices.
 
 ## Demo Credentials
 
