@@ -1,10 +1,10 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class PrismaService
   extends PrismaClient
-  implements OnModuleInit, OnModuleDestroy
+  implements OnModuleDestroy
 {
   constructor() {
     super({
@@ -15,9 +15,7 @@ export class PrismaService
     });
   }
 
-  async onModuleInit() {
-    await this.$connect();
-  }
+
 
   async onModuleDestroy() {
     await this.$disconnect();
@@ -27,8 +25,7 @@ export class PrismaService
     if (process.env.NODE_ENV === 'production') {
       throw new Error('Cannot clean database in production');
     }
-    
-    // Delete in order to respect foreign key constraints
+
     await this.portfolioItem.deleteMany();
     await this.user.deleteMany();
   }
