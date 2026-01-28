@@ -2,18 +2,34 @@
 
 import { useState } from 'react';
 import { Plus, TrendingUp, TrendingDown, Wallet, PieChart } from 'lucide-react';
+
 import { usePortfolio } from '@/hooks';
-import { formatCurrency, formatPercentage, getProfitLossColor, getProfitLossBgColor } from '@/lib/utils';
+import { formatCurrency, formatPercentage, getProfitLossColor } from '@/lib/utils';
+
 import SummaryCard from '@/components/ui/SummaryCard';
 import PortfolioTable from '@/components/portfolio/PortfolioTable';
 import AllocationChart from '@/components/charts/AllocationChart';
 import AddAssetModal from '@/components/portfolio/AddAssetModal';
+import EditAssetModal from '@/components/portfolio/EditAssetModal';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
-export default function DashboardPage() {
-  const { summary, isLoading, error, refetch, addItem, deleteItem } = usePortfolio();
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+import type { PortfolioItemWithValue } from '@/types';
 
+export default function DashboardPage() {
+  const {
+    summary,
+    isLoading,
+    error,
+    refetch,
+    addItem,
+    updateItem,
+    deleteItem,
+  } = usePortfolio();
+
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<PortfolioItemWithValue | null>(null);
+
+  /* ---------------- Loading / Error ---------------- */
   if (isLoading) {
     return <LoadingSpinner />;
   }
@@ -29,16 +45,19 @@ export default function DashboardPage() {
     );
   }
 
-  const profitLossIcon = (summary?.totalProfitLoss ?? 0) >= 0 ? TrendingUp : TrendingDown;
+  const profitLossIcon =
+    (summary?.totalProfitLoss ?? 0) >= 0 ? TrendingUp : TrendingDown;
 
+  /* ---------------- UI ---------------- */
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* ===== Header ===== */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600">Track your portfolio performance</p>
         </div>
+
         <button
           onClick={() => setIsAddModalOpen(true)}
           className="btn-primary"
@@ -48,7 +67,7 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {/* Summary Cards */}
+      {/* ===== Summary ===== */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <SummaryCard
           title="Total Balance"
@@ -57,16 +76,26 @@ export default function DashboardPage() {
           iconColor="text-primary-600"
           iconBgColor="bg-primary-100"
         />
+
         <SummaryCard
-          title="Total Profit/Loss"
+          title="Total Profit / Loss"
           value={formatCurrency(Math.abs(summary?.totalProfitLoss ?? 0))}
           subtitle={formatPercentage(summary?.totalProfitLossPercentage ?? 0)}
           icon={profitLossIcon}
-          iconColor={(summary?.totalProfitLoss ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'}
-          iconBgColor={(summary?.totalProfitLoss ?? 0) >= 0 ? 'bg-green-100' : 'bg-red-100'}
+          iconColor={
+            (summary?.totalProfitLoss ?? 0) >= 0
+              ? 'text-green-600'
+              : 'text-red-600'
+          }
+          iconBgColor={
+            (summary?.totalProfitLoss ?? 0) >= 0
+              ? 'bg-green-100'
+              : 'bg-red-100'
+          }
           valueColor={getProfitLossColor(summary?.totalProfitLoss ?? 0)}
           prefix={(summary?.totalProfitLoss ?? 0) >= 0 ? '+' : '-'}
         />
+
         <SummaryCard
           title="Active Assets"
           value={String(summary?.activeAssets ?? 0)}
@@ -76,16 +105,18 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Charts and Table */}
+      {/* ===== Table + Chart ===== */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Portfolio Table */}
+        {/* ---- Portfolio Table ---- */}
         <div className="lg:col-span-2">
           <div className="card">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Your Portfolio</h2>
-            </div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Your Portfolio
+            </h2>
+
             <PortfolioTable
               items={summary?.items ?? []}
+              onEdit={(item) => setEditingItem(item)}
               onDelete={async (id) => {
                 await deleteItem(id);
               }}
@@ -93,16 +124,18 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Allocation Chart */}
+        {/* ---- Allocation Chart ---- */}
         <div className="lg:col-span-1">
           <div className="card h-full">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Asset Allocation</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Asset Allocation
+            </h2>
             <AllocationChart allocation={summary?.allocation ?? []} />
           </div>
         </div>
       </div>
 
-      {/* Add Asset Modal */}
+      {/* ===== Add Asset Modal ===== */}
       <AddAssetModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
@@ -114,6 +147,22 @@ export default function DashboardPage() {
           return result;
         }}
       />
+
+      {/* ===== Edit Asset Modal ===== */}
+      {editingItem && (
+        <EditAssetModal
+          isOpen={true}
+          item={editingItem}
+          onClose={() => setEditingItem(null)}
+          onSubmit={async (data) => {
+            const result = await updateItem(editingItem.id, data);
+            if (result.success) {
+              setEditingItem(null);
+            }
+            return result;
+          }}
+        />
+      )}
     </div>
   );
 }

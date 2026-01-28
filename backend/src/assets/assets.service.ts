@@ -66,39 +66,17 @@ export class AssetsService {
       return [];
     }
   }
-  async getAssetBySymbol(symbol: string): Promise<Asset | null> {
-    try {
-      const upper = symbol.toUpperCase();
+async getAssetBySymbol(symbol: string): Promise<Asset | null> {
+  const upper = symbol.toUpperCase();
 
-      // 1️⃣ cache
-      if (this.isCacheValid() && this.assetsCache.has(upper)) {
-        return this.assetsCache.get(upper)!;
-      }
-
-      // 2️⃣ API
-      const res = await axios.get<StocksApiResponse>(
-        `${this.apiUrl}/symbol/${upper}`,
-      );
-
-      const raw = res.data.data?.[0];
-      if (!raw) return null;
-
-      const asset: Asset = {
-        symbol: raw.Symbol,
-        name: raw.Name,
-        description: raw.Description,
-        price: Number(raw['Current Price']),
-        type: raw.Type,
-        logo: raw['Logo URL'],
-      };
-
-      this.assetsCache.set(upper, asset);
-      return asset;
-    } catch (e) {
-      this.logger.error(`Failed to fetch asset ${symbol}`, e);
-      return this.assetsCache.get(symbol.toUpperCase()) || null;
-    }
+  // ✅ ensure cache is ready
+  if (!this.isCacheValid() || this.assetsCache.size === 0) {
+    await this.getAllAssets();
   }
+
+  return this.assetsCache.get(upper) || null;
+}
+
     async getCurrentPrice(symbol: string): Promise<number> {
     const asset = await this.getAssetBySymbol(symbol);
     return asset?.price || 0;

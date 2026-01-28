@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { portfolioService } from '@/services';
 import type { PortfolioSummary, CreatePortfolioItemDto, UpdatePortfolioItemDto } from '@/types';
 import { getErrorMessage } from '@/lib/api';
-
+import Cookies from 'js-cookie';
 export function usePortfolio() {
   const [summary, setSummary] = useState<PortfolioSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -53,9 +53,12 @@ export function usePortfolio() {
     }
   }, [fetchSummary]);
 
-  useEffect(() => {
-    fetchSummary();
-  }, [fetchSummary]);
+ useEffect(() => {
+  const token = Cookies.get('token');
+  if (!token) return;
+
+  fetchSummary();
+}, [fetchSummary]);
 
   return {
     summary,
