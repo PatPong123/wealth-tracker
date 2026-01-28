@@ -29,11 +29,19 @@ export class UsersService {
     });
   }
 
-  async findByUsername(username: string): Promise<User | null> {
+ async findByUsername(username: string) {
+  try {
+    return await this.prisma.user.findUnique({
+      where: { username },
+    });
+  } catch (err) {
+    // retry 1 ครั้ง
+    await new Promise(r => setTimeout(r, 500));
     return this.prisma.user.findUnique({
       where: { username },
     });
   }
+}
 
   async findByEmail(email: string): Promise<User | null> {
     return this.prisma.user.findUnique({
